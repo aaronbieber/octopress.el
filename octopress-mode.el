@@ -8,11 +8,26 @@
 
 (defface om-option-on-face
   '((t (:foreground "#50A652")))
-  "An Octopress interactive option when on.")
+  "An Octopress interactive option when on."
+  :group 'octopress-mode)
 
 (defface om-option-off-face
   '((t (:foreground "#CF4C4C")))
-  "An Octopress interactive option when off.")
+  "An Octopress interactive option when off."
+  :group 'octopress-mode)
+
+(defface om-highlight-line-face
+  '((t (:background "#323878")))
+  "Face used to highlight the active line."
+  :group 'octopress-mode)
+
+(defvar om-highlight-current-line-overlay
+  ;; Dummy initialization
+  (make-overlay 1 1)
+  "Overlay for highlighting the current line.")
+
+(overlay-put om-highlight-current-line-overlay
+	     'face 'om-highlight-line-face)
 
 (defvar octopress-mode-map
   (let ((map (make-sparse-keymap)))
@@ -706,13 +721,22 @@ Return a propertized string like KEY: LABEL."
         (progn (om--draw-status om-buffer)
                (pop-to-buffer om-buffer)))))
 
+(defun om-highlight-current-line ()
+  (if (om--thing-on-this-line)
+      (let ((end (save-excursion
+                   (forward-line 1)
+                   (point))))
+        (move-overlay om-highlight-current-line-overlay (line-beginning-position) end))
+    (delete-overlay om-highlight-current-line-overlay)))
+
 (define-derived-mode octopress-mode nil "Octopress"
   "The major mode for interacting with a Jekyll site.
 
 The following keys are available in `octopress-mode':
 
   \\{octopress-mode-map}"
-  (setq truncate-lines t))
+  (setq truncate-lines t)
+  (add-hook 'post-command-hook 'om-highlight-current-line nil t))
 
 (define-derived-mode octopress-server-mode nil "Octopress[Server]"
   "The major mode for interacting with a Jekyll server process.
