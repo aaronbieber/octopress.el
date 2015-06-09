@@ -555,9 +555,7 @@ If REVERSE is not nil, move to the previous visible 'thing."
 
 (defun om--maybe-toggle-visibility ()
   (interactive)
-  (let ((hidden (save-excursion
-                  (goto-char (line-beginning-position))
-                  (get-text-property (point) 'hidden))))
+  (let ((hidden (get-text-property (line-beginning-position) 'hidden)))
     (if hidden
         (if (memq hidden buffer-invisibility-spec)
             (remove-from-invisibility-spec hidden)
