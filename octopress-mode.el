@@ -483,14 +483,33 @@ passed the resulting BUFFER."
       (server-status . ,(om--server-status-string)))))
 
 (defun om--move-to-next-thing ()
-  "Move to the next item with property 'thing."
+  "Move point to the next item with property 'thing."
   (interactive)
   (om--move-to-next-prop 'thing))
 
 (defun om--move-to-next-heading ()
-  "Move to the next item with property 'heading."
+  "Move point to the next item with property 'heading."
   (interactive)
   (om--move-to-next-prop 'heading))
+
+(defun om--move-to-next-visible-thing ()
+  "Move point to the next item with property 'thing that is visible."
+  (goto-char (or (save-excursion
+                   (end-of-line)
+                   (let* (visible-thing
+                          (thing (next-single-property-change (point) 'thing))
+                          (invisible t))
+                     (while (and (next-single-property-change (point) 'thing)
+                                 invisible)
+                       (setq invisible (and (get-text-property thing 'invisible)
+                                            (memq
+                                             (get-text-property thing 'invisible)
+                                             buffer-invisibility-spec)))
+                       (if thing (goto-char thing))
+                       (if (not invisible)
+                           (setq visible-thing (point))))
+                     visible-thing))
+                 (point))))
 
 (defun om--move-to-next-prop (prop-name)
   "Move to the next item with property PROP-NAME."
