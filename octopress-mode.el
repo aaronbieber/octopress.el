@@ -512,7 +512,8 @@ If REVERSE is not nil, move to the previous visible 'thing."
                                (setq destination next-candidate))
                            (setq destination start))))
                      destination))
-                 (point))))
+                 (point)))
+  (beginning-of-line))
 
 (defun om--move-to-next-prop (prop-name)
   "Move to the next item with property PROP-NAME."
