@@ -162,7 +162,7 @@ enabled by default in the interactive prompt to start the server."
 
 (defun om-publish-unpublish ()
   (interactive)
-  (let* ((thing (om--thing-near-point))
+  (let* ((thing (om--file-near-point))
          (thing-type (car thing))
          (filename (cdr thing)))
     (if (memq thing-type '(drafts posts))
@@ -198,7 +198,11 @@ enabled by default in the interactive prompt to start the server."
           (progn (kill-buffer om-buffer)
                  nil))))))
 
-(defun om--thing-near-point ()
+(defun om--thing-on-this-line ()
+  "Determine whether there is a thing on this line."
+  (get-text-property (line-beginning-position) 'thing))
+
+(defun om--file-near-point ()
   "Return the filename on the current line (of *om-status*).
 
 Return a single cons cell where the car of the cons is the `thing
