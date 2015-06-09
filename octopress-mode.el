@@ -701,7 +701,11 @@ Returns the process object."
                 (goto-char (process-mark proc)))))))))
 
 (defun om--handle-octopress-output (buffer)
-  "Attempt to do something reasonable based on what Octopress said."
+  "Attempt to do something reasonable based on what Octopress said.
+
+This is 'cheater mode' for not having callbacks in elisp and to avoid creating
+different output buffers for different operations to figure out what to do with
+each kind of output."
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-max))
