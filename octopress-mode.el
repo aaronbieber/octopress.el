@@ -485,30 +485,33 @@ passed the resulting BUFFER."
 (defun om--move-to-next-thing ()
   "Move point to the next item with property 'thing."
   (interactive)
-  (om--move-to-next-prop 'thing))
+  (om--move-to-next-visible-thing))
 
 (defun om--move-to-next-heading ()
   "Move point to the next item with property 'heading."
   (interactive)
   (om--move-to-next-prop 'heading))
 
-(defun om--move-to-next-visible-thing ()
-  "Move point to the next item with property 'thing that is visible."
-  (goto-char (or (save-excursion
-                   (end-of-line)
-                   (let* (visible-thing
-                          (thing (next-single-property-change (point) 'thing))
-                          (invisible t))
-                     (while (and (next-single-property-change (point) 'thing)
-                                 invisible)
-                       (setq invisible (and (get-text-property thing 'invisible)
-                                            (memq
-                                             (get-text-property thing 'invisible)
-                                             buffer-invisibility-spec)))
-                       (if thing (goto-char thing))
-                       (if (not invisible)
-                           (setq visible-thing (point))))
-                     visible-thing))
+(defun om--move-to-next-visible-thing (&optional reverse)
+  "Move point to the next item with property 'thing that is visible.
+
+If REVERSE is not nil, move to the previous visible 'thing."
+  (goto-char (or (let ((start (point)))
+                   (if reverse
+                       (beginning-of-line)
+                     (end-of-line))
+                   (let* (destination)
+                     (while (not destination)
+                       (let ((next-candidate (if reverse
+                                                 (previous-single-property-change (point) 'thing)
+                                               (next-single-property-change (point) 'thing))))
+                         (if next-candidate
+                             (if (memq (get-text-property next-candidate 'invisible)
+                                       buffer-invisibility-spec)
+                                 (goto-char next-candidate)
+                               (setq destination next-candidate))
+                           (setq destination start))))
+                     destination))
                  (point))))
 
 (defun om--move-to-next-prop (prop-name)
@@ -527,7 +530,7 @@ passed the resulting BUFFER."
 (defun om--move-to-previous-thing ()
   "Move to the previous item with property 'thing."
   (interactive)
-  (om--move-to-previous-prop 'thing))
+  (om--move-to-next-visible-thing t))
 
 (defun om--move-to-previous-heading ()
   "Move to the previous item with property 'heading."
@@ -593,8 +596,8 @@ STATUS is an alist of status names and their printable values."
 
          "\n"
          (propertize "Commands:\n" 'face 'font-lock-constant-face)
-         " " (om--legend-item "C-n" "Next heading" 18)
-         (om--legend-item "C-p" "Prev heading" 18)
+         " " (om--legend-item "C-n" "Next section" 18)
+         (om--legend-item "C-p" "Prev section" 18)
          (om--legend-item "n" "Next thing" 18)
          (om--legend-item "p" "Prev thing" 18) "\n"
          " " (om--legend-item "TAB" "Toggle thing" 18)
