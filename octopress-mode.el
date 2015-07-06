@@ -715,16 +715,53 @@ each kind of output."
                    (string-prefix-p "New draft:" output)
                    (string-prefix-p "New page:" output))
                (progn (message "Saw '%s'" output)
-                      (let* ((found (string-match ": \\(.*\\)$" output))
-                             (filename (and found
-                                            (expand-file-name (match-string 1 output) (om--get-root)))))
+                      (let* ((filename (om--find-filename-in-output output)))
                         (message "Filename: %s" filename)
                         (if (file-exists-p filename)
                             (find-file filename)))))
                ((string-prefix-p "Published:" output)
-                ())
+                (let ((draft (om--find-filename-in-output output "_drafts"))
+                      (post (om--find-filename-in-output output "_posts")))
+                  (if (and draft post)
+                      (om--swap-window-files draft post))))
                ((string-prefix-p "Unpublished:" output)
-                ()))))))
+                (let ((draft (om--find-filename-in-output output "_posts"))
+                      (post (om--find-filename-in-output output "_drafts")))
+                  (if (and draft post)
+                      (om--swap-window-files draft post)))))))))
+
+(defun om--swap-window-files (old-filename new-filename)
+  "Swap any windows displaying OLD-FILENAME to instead display NEW-FILENAME.
+
+This function creates a buffer for NEW-FILENAME if one does not
+already exist, finds any windows currently displaying a buffer
+corresponding to OLD-FILENAME, and changes them to instead edit the
+NEW-FILENAME buffer. Any buffer visiting OLD-FILENAME is then killed.
+This function is called when posts or drafts move between published
+and unpublished status."
+  (let* ((new-buffer (find-file-noselect new-filename))
+         (old-buffer (find-buffer-visiting old-filename))
+         (window-visiting-old-file (get-buffer-window old-buffer)))
+    (while window-visiting-old-file 
+      (progn (set-window-buffer window-visiting-old-file new-buffer)
+             (setq window-visiting-old-file (get-buffer-window old-buffer))))
+    (kill-buffer old-buffer)))
+
+(defun om--find-filename-in-output (output &optional prefix)
+  "Find the filename in an Octopress OUTPUT line.
+
+This helper function will extract a filename with preceding path
+components, if present, from a single line of Octopress output. Used
+by `om--handle-octopress-output'.
+
+If the string PREFIX is given, the filename is assumed to begin with
+it. For example, call with '_posts' or '_drafts' to find the
+corresponding paths in the output line."
+  (let* ((found (if prefix (string-match (concat "\\(" prefix "[^\s]*\\)") output)
+                  (string-match ": \\([^\s]*\\)$" output)))
+         (filename (and found
+                        (expand-file-name (match-string 1 output) (om--get-root)))))
+    filename))
 
 (defun om--prop-command (key label)
   "Propertize a command legend item with pretty colors.
