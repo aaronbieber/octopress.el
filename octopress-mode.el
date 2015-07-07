@@ -740,7 +740,7 @@ and unpublished status."
   (let* ((new-buffer (find-file-noselect new-filename))
          (old-buffer (find-buffer-visiting old-filename))
          (window-visiting-old-file (get-buffer-window old-buffer)))
-    (while window-visiting-old-file 
+    (while window-visiting-old-file
       (progn (set-window-buffer window-visiting-old-file new-buffer)
              (setq window-visiting-old-file (get-buffer-window old-buffer))))
     (kill-buffer old-buffer)))
