@@ -194,7 +194,7 @@ result in newer posts appearing first in the list."
   (interactive)
   (let* ((post-dir (expand-file-name octopress-posts-directory (om--get-root)))
          (posts (sort (directory-files post-dir nil nil t)
-                      '(lambda (s1 s2) (not (string-lessp s1 s2)))))
+                      #'(lambda (s1 s2) (not (string-lessp s1 s2)))))
          (post (file-name-base (completing-read
                                 "Link to: "
                                 posts
