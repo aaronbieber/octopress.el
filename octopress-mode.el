@@ -491,8 +491,7 @@ If the buffer doesn't exist yet, it will be created and prepared."
         (get-buffer buffer-name)
       (let ((status-buffer (om--prepare-buffer-for-type "status" 'octopress-mode)))
         (with-current-buffer status-buffer
-          (add-to-invisibility-spec 'posts)
-          (add-to-invisibility-spec 'drafts))
+          (add-to-invisibility-spec 'posts))
         status-buffer))))
 
 (defun om--prepare-server-buffer ()
