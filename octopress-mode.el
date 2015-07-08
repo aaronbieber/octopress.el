@@ -692,19 +692,22 @@ STATUS is an alist of status names and their printable values."
      label
      (make-string pad ? ))))
 
+(defun om--get-articles-in-dir-by-date-desc (dir)
+  "Get files in the blog subdir DIR in descending order by date."
+  (mapcar #'car
+          (sort (directory-files-and-attributes
+                 (expand-file-name dir om-root)
+                 nil
+                 "*.md$\\|.*markdown$")
+                #'(lambda (f1 f2) (time-less-p (nth 6 f2) (nth 6 f1))))))
+
 (defun om--get-posts ()
   (om--setup)
-  (directory-files
-   (expand-file-name octopress-posts-directory om-root)
-   nil
-   "*.md$\\|.*markdown$"))
+  (om--get-articles-in-dir-by-date-desc octopress-posts-directory))
 
 (defun om--get-drafts ()
   (om--setup)
-  (directory-files
-   (expand-file-name octopress-drafts-directory om-root)
-   nil
-   "*.md$\\|.*markdown$"))
+  (om--get-articles-in-dir-by-date-desc octopress-drafts-directory))
 
 (defun om--run-octopress-command (command)
   "Run an Octopress command, sending output to the process buffer.
