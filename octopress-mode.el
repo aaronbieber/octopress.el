@@ -31,6 +31,7 @@
 
 (defvar octopress-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "?" 'om-toggle-command-window)
     (define-key map "q" 'om-status-quit)
     (define-key map "s" 'om-start-stop-server)
     (define-key map "g" 'om-refresh-status)
@@ -97,6 +98,7 @@ enabled by default in the interactive prompt to start the server."
 ;;; "Public" functions
 (defun om-refresh-status ()
   (interactive)
+  (om-toggle-command-window t)
   (om--maybe-redraw-status))
 
 (defun om-start-stop-server ()
@@ -111,9 +113,11 @@ enabled by default in the interactive prompt to start the server."
          (unpublished (cdr (assoc 'unpublished config))))
     (if choice
         (cond ((eq choice ?s)
+               (om-toggle-command-window t)
                (om--start-server-process drafts future unpublished))
               ((eq choice ?k)
-               (progn (message "Stopping server...")
+               (progn (om-toggle-command-window t)
+                      (message "Stopping server...")
                       (om--stop-server-process)))))))
 
 (defun om-restart-server ()
@@ -121,10 +125,12 @@ enabled by default in the interactive prompt to start the server."
 
 (defun om-show-server ()
   (interactive)
+  (om-toggle-command-window t)
   (pop-to-buffer (om--prepare-server-buffer)))
 
 (defun om-show-process ()
   (interactive)
+  (om-toggle-command-window t)
   (pop-to-buffer (om--prepare-process-buffer)))
 
 (defun om-create-thing ()
@@ -145,7 +151,9 @@ enabled by default in the interactive prompt to start the server."
 (defun om-deploy ()
   (interactive)
   (when (yes-or-no-p "Really deploy your site? ")
-    (om--start-deploy-process)))
+    (progn
+      (om-toggle-command-window t)
+      (om--start-deploy-process))))
 
 (defun om-build ()
   (interactive)
@@ -158,11 +166,14 @@ enabled by default in the interactive prompt to start the server."
          (future (cdr (assoc 'future config)))
          (unpublished (cdr (assoc 'unpublished config))))
     (when (eq choice ?b)
-      (om--start-build-process drafts future unpublished))))
+      (progn
+        (om-toggle-command-window t)
+        (om--start-build-process drafts future unpublished)))))
 
 (defun om-status-quit ()
   "Quit the Octopress Mode window, preserving its buffer."
   (interactive)
+  (om-toggle-command-window t)
   (quit-window))
 
 (defun om-server-quit ()
@@ -211,9 +222,30 @@ result in newer posts appearing first in the list."
                            "unpublish")
                           ((eq type 'drafts)
                            "publish"))))
-      (if (file-exists-p (expand-file-name filename source-path))
-          (om--run-octopress-command (concat "octopress " subcommand " " filename))
-        (message "The file `%s' doesn't exist in `%s'. Try refreshing?" filename posts-path))))
+    (if (file-exists-p (expand-file-name filename source-path))
+        (if (or (eq type 'drafts)
+                (yes-or-no-p "Really unpublish this post? "))
+            (progn (om-toggle-command-window t)
+                   (om--run-octopress-command (concat "octopress " subcommand " " filename))))
+      (message "The file `%s' doesn't exist in `%s'. Try refreshing?" filename octopress-posts-directory))))
+
+(defun om-toggle-command-window (&optional hide)
+  "Toggle the display of a helpful command window.
+
+If the optional HIDE argument is not nil, hide the command window if
+it exists and do nothing otherwise."
+  (interactive)
+  (let* ((buffer-name (om--buffer-name-for-type "command"))
+         (command-buffer (get-buffer-create buffer-name))
+         (command-window (get-buffer-window command-buffer)))
+    (if command-window
+        (delete-window command-window)
+      (if (not hide)
+          (progn
+            (om--draw-command-help command-buffer)
+            (split-window-below)
+            (set-window-buffer (next-window) command-buffer)
+            (fit-window-to-buffer (next-window)))))))
 
 ;;; "Private" functions
 (defun om--setup ()
@@ -230,6 +262,29 @@ result in newer posts appearing first in the list."
                 om-buffer)
           (progn (kill-buffer om-buffer)
                  nil))))))
+
+(defun om--draw-command-help (buffer)
+  (with-current-buffer buffer
+    (setq buffer-read-only t)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert
+       (om--legend-item "C-n" "Next section" 18)
+       (om--legend-item "C-p" "Prev section" 18)
+       (om--legend-item "n" "Next thing" 18)
+       (om--legend-item "p" "Prev thing" 18) "\n"
+       (om--legend-item "TAB" "Toggle thing" 18)
+       (om--legend-item "RET" "Open thing" 18) "\n\n"
+       (om--legend-item "c" "Create" 18)
+       (om--legend-item "s" "Server" 18)
+       (om--legend-item "b" "Build" 18)
+       (om--legend-item "P" "[Un]publish" 18) "\n"
+       (om--legend-item "d" "Deploy" 18)
+       (om--legend-item "g" "Refresh" 18)
+       (om--legend-item "!" "Show Process" 18)
+       (om--legend-item "$" "Show Server" 18) "\n"
+       (om--legend-item "q" "Quit" 18))
+      (goto-char (point-min)))))
 
 (defun om--thing-on-this-line ()
   "Determine whether there is a thing on this line."
@@ -322,14 +377,17 @@ This function returns the char value from CHOICES selected by the user."
         (pop-to-buffer (find-file full-filename)))))
 
 (defun om--new-post ()
+  (om-toggle-command-window t)
   (let ((name (read-string "Post name: ")))
     (om--run-octopress-command (concat "octopress new post \"" name "\""))))
 
 (defun om--new-draft ()
+  (om-toggle-command-window t)
   (let ((name (read-string "Draft name: ")))
     (om--run-octopress-command (concat "octopress new draft \"" name "\""))))
 
 (defun om--new-page ()
+  (om-toggle-command-window t)
   (let ((name (read-string "Page name: ")))
     (om--run-octopress-command (concat "octopress new page \"" name "\""))))
 
@@ -612,22 +670,7 @@ STATUS is an alist of status names and their printable values."
          (om--get-display-list (om--get-posts) 'posts)
 
          "\n"
-         (propertize "Commands:\n" 'face 'font-lock-constant-face)
-         " " (om--legend-item "C-n" "Next section" 18)
-         (om--legend-item "C-p" "Prev section" 18)
-         (om--legend-item "n" "Next thing" 18)
-         (om--legend-item "p" "Prev thing" 18) "\n"
-         " " (om--legend-item "TAB" "Toggle thing" 18)
-         (om--legend-item "RET" "Open thing" 18) "\n\n"
-         " " (om--legend-item "c" "Create" 18)
-         (om--legend-item "s" "Server" 18)
-         (om--legend-item "b" "Build" 18)
-         (om--legend-item "P" "[Un]publish" 18) "\n"
-         " " (om--legend-item "d" "Deploy" 18)
-         (om--legend-item "g" "Refresh" 18)
-         (om--legend-item "!" "Show Process" 18)
-         (om--legend-item "$" "Show Server" 18) "\n"
-         " " (om--legend-item "q" "Quit" 18))
+         "Press `?' for help.")
         (goto-char (if (< pos (point-max))
                        pos
                      (point-min)))
