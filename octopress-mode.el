@@ -184,6 +184,24 @@ enabled by default in the interactive prompt to start the server."
         (om--publish-unpublish thing-type filename)
       (message "There is no post nor draft on this line."))))
 
+(defun om-insert-post-url ()
+  "Prompt for a post and insert a Jekyll URL tag at point.
+
+Assuming that authors typically want to link to newer posts, the
+directory list will be sorted in reverse alphabetical order. Provided
+that the files are named using the YYYY-MM-DD prefix format, this will
+result in newer posts appearing first in the list."
+  (interactive)
+  (let* ((post-dir (expand-file-name octopress-posts-directory (om--get-root)))
+         (posts (sort (directory-files post-dir nil nil t)
+                      '(lambda (s1 s2) (not (string-lessp s1 s2)))))
+         (post (file-name-base (completing-read
+                                "Link to: "
+                                posts
+                                '(lambda (f) (and (not (string= f "."))
+                                                  (not (string= f ".."))))))))
+    (insert (concat "{% post_url " post " %}"))))
+
 (defun om--publish-unpublish (type filename)
   (let ((source-path (cond ((eq type 'posts)
                             (expand-file-name octopress-posts-directory (om--get-root)))
@@ -780,24 +798,6 @@ Return a propertized string like KEY: LABEL."
     (if om-buffer
         (progn (om--draw-status om-buffer)
                (pop-to-buffer om-buffer)))))
-
-(defun om-insert-post-url ()
-  "Prompt for a post and insert a Jekyll URL tag at point.
-
-Assuming that authors typically want to link to newer posts, the
-directory list will be sorted in reverse alphabetical order. Provided
-that the files are named using the YYYY-MM-DD prefix format, this will
-result in newer posts appearing first in the list."
-  (interactive)
-  (let* ((post-dir (expand-file-name octopress-posts-directory (om--get-root)))
-         (posts (sort (directory-files post-dir nil nil t)
-                      '(lambda (s1 s2) (not (string-lessp s1 s2)))))
-         (post (file-name-base (completing-read
-                                "Link to: "
-                                posts
-                                '(lambda (f) (and (not (string= f "."))
-                                                  (not (string= f ".."))))))))
-    (insert (concat "{% post_url " post " %}"))))
 
 (defun om-highlight-current-line ()
   (if (om--thing-on-this-line)
