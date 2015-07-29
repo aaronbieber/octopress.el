@@ -786,10 +786,10 @@ each kind of output."
                   (if (and draft post)
                       (om--swap-window-files draft post))))
                ((string-prefix-p "Unpublished:" output)
-                (let ((draft (om--find-filename-in-output output "_posts"))
-                      (post (om--find-filename-in-output output "_drafts")))
+                (let ((draft (om--find-filename-in-output output "_drafts"))
+                      (post (om--find-filename-in-output output "_posts")))
                   (if (and draft post)
-                      (om--swap-window-files draft post)))))))))
+                      (om--swap-window-files post draft)))))))))
 
 (defun om--swap-window-files (old-filename new-filename)
   "Swap any windows displaying OLD-FILENAME to instead display NEW-FILENAME.
