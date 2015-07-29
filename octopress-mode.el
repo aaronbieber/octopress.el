@@ -846,7 +846,7 @@ Return a propertized string like KEY: LABEL."
   (set-text-properties 0 (length text) nil text)
       text)
 
-(defun om-highlight-current-line ()
+(defun om--highlight-current-line ()
   (if (om--thing-on-this-line)
       (let ((end (save-excursion
                    (forward-line 1)
@@ -861,7 +861,7 @@ The following keys are available in `octopress-mode':
 
   \\{octopress-mode-map}"
   (setq truncate-lines t)
-  (add-hook 'post-command-hook 'om-highlight-current-line nil t))
+  (add-hook 'post-command-hook 'om--highlight-current-line nil t))
 
 (define-derived-mode octopress-server-mode nil "Octopress[Server]"
   "The major mode for interacting with a Jekyll server process.
