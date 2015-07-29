@@ -806,7 +806,8 @@ and unpublished status."
     (while window-visiting-old-file
       (progn (set-window-buffer window-visiting-old-file new-buffer)
              (setq window-visiting-old-file (get-buffer-window old-buffer))))
-    (kill-buffer old-buffer)))
+    (if old-buffer
+        (kill-buffer old-buffer))))
 
 (defun om--find-filename-in-output (output &optional prefix)
   "Find the filename in an Octopress OUTPUT line.
