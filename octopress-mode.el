@@ -96,6 +96,16 @@ enabled by default in the interactive prompt to start the server."
   :group   'octopress-mode)
 
 ;;; "Public" functions
+
+;;;###autoload
+(defun om-status ()
+  "The main entry point into octopress-mode."
+  (interactive)
+  (let ((om-buffer (om--setup)))
+    (if om-buffer
+        (progn (om--draw-status om-buffer)
+               (pop-to-buffer om-buffer)))))
+
 (defun om-refresh-status ()
   (interactive)
   (om-toggle-command-window t)
@@ -835,15 +845,6 @@ Return a propertized string like KEY: LABEL."
   "Remove all properties from TEXT and return it."
   (set-text-properties 0 (length text) nil text)
       text)
-
-;;;###autoload
-(defun om-status ()
-  "The main entry point into octopress-mode."
-  (interactive)
-  (let ((om-buffer (om--setup)))
-    (if om-buffer
-        (progn (om--draw-status om-buffer)
-               (pop-to-buffer om-buffer)))))
 
 (defun om-highlight-current-line ()
   (if (om--thing-on-this-line)
