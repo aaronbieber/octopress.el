@@ -1,6 +1,19 @@
-;; octopress-mode.el --- Lightweight wrapper for Jekyll and Octopress.
+;;; octopress-mode.el --- A lightweight wrapper for Jekyll and Octopress.
+
+;; Copyright (C) 2015 Aaron Bieber
+
+;; Author: Aaron Bieber <aaron@aaronbieber.com>
+;; Version: 1.0
+;; Package-Requires ((cl-lib "0.5"))
+;; Keywords: octopress, blog, mode
+;; URL: https://github.com/aaronbieber/octopress-mode
 
 ;;; Commentary:
+
+;; This package provides a lightweight but fluent wrapper around the
+;; Octopress 3.0 suite of commands used to generate and manage a blog
+;; site. For help using this package, see its README or website as
+;; noted in the header above.
 
 ;;; Code:
 
