@@ -559,7 +559,7 @@ user will be prompted to enter the path to an Octopress site."
     (if (bufferp status-buffer)
         (om--draw-status status-buffer))))
 
-(defun om--get-status-data ()
+(defun om--get-status-data (buffer)
   (om--setup)
   "Return the status of the Octopress site linked to BUFFER.
 
@@ -664,7 +664,7 @@ If REVERSE is not nil, move to the previous visible 'thing."
   "Draw a display of STATUS in BUFFER.
 
 STATUS is an alist of status names and their printable values."
-  (let ((status (om--get-status-data)))
+  (let ((status (om--get-status-data buffer)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t)
             (window (get-buffer-window))
