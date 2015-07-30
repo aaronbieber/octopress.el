@@ -78,21 +78,23 @@
 ;;; Customization
 (defcustom octopress-posts-directory
   "_posts"
-  "Directory containing posts, relative to /path/to/jekyll-site/"
+  "Directory containing posts, relative to /path/to/jekyll-site/."
   :type 'string
   :group 'octopress-mode)
 
 (defcustom octopress-drafts-directory
   "_drafts"
-  "Directory containing drafts, relative to /path/to/jekyll-site/"
+  "Directory containing drafts, relative to /path/to/jekyll-site/."
   :type 'string
   :group 'octopress-mode)
 
 (defcustom octopress-default-build-flags
   '()
-  "The default flags to pass to `jekyll build'. Each option is a type of post
-that is normally excluded from a Jekyll build. The checked options will be
-enabled by default in the interactive prompt."
+  "The default flags to pass to `jekyll build'.
+
+Each option is a type of post that is normally excluded from a Jekyll
+build.  The checked options will be enabled by default in the
+interactive prompt."
   :type    '(set (const :tag "Drafts" drafts)
                  (const :tag "Posts with future dates" future)
                  (const :tag "Unpublished posts" unpublished))
@@ -100,9 +102,11 @@ enabled by default in the interactive prompt."
 
 (defcustom octopress-default-server-flags
   '(drafts unpublished)
-  "The default flags to pass to `jekyll serve'. Each option is a type of post
-that is normally ignored by the Jekyll server. The checked options will be
-enabled by default in the interactive prompt to start the server."
+  "The default flags to pass to `jekyll serve'.
+
+Each option is a type of post that is normally ignored by the Jekyll
+server.  The checked options will be enabled by default in the
+interactive prompt to start the server."
   :type    '(set (const :tag "Drafts" drafts)
                  (const :tag "Posts with future dates" future)
                  (const :tag "Unpublished posts" unpublished))
@@ -222,7 +226,7 @@ enabled by default in the interactive prompt to start the server."
   "Prompt for a post and insert a Jekyll URL tag at point.
 
 Assuming that authors typically want to link to newer posts, the
-directory list will be sorted in reverse alphabetical order. Provided
+directory list will be sorted in reverse alphabetical order.  Provided
 that the files are named using the YYYY-MM-DD prefix format, this will
 result in newer posts appearing first in the list."
   (interactive)
