@@ -336,7 +336,7 @@ function returns nil."
 (defun om--read-char-with-toggles (prompt-suffix choices &optional default-to-on)
   "Read a selection from a menu with toggles.
 
-Display a fixed menu of toggles followed by PROMPT-SUFFIX. Accept any of
+Display a fixed menu of toggles followed by PROMPT-SUFFIX.  Accept any of
 the default choices (d, f, u, q) as well as the supplied CHOICES, which
 should be provided as a list of characters (not strings).
 
@@ -471,7 +471,7 @@ This function returns the char value from CHOICES selected by the user."
         (process-send-string server-process (kbd "C-c")))))
 
 (defun om--buffer-name-for-type (type)
-  "Return a buffer name for the provided type."
+  "Return a buffer name for the provided TYPE."
   (concat "*om-" type "*"))
 
 (defun om--server-sentinel (process event)
@@ -564,11 +564,11 @@ user will be prompted to enter the path to an Octopress site."
         (om--draw-status status-buffer))))
 
 (defun om--get-status-data (buffer)
-  (om--setup)
   "Return the status of the Octopress site linked to BUFFER.
 
 This function can only be called after `om-status' has been run and must be
 passed the resulting BUFFER."
+  (om--setup)
   (with-current-buffer buffer
     `((posts-count . ,(number-to-string
                        (length
@@ -791,7 +791,7 @@ Returns the process object."
                 (goto-char (process-mark proc)))))))))
 
 (defun om--handle-octopress-output (buffer)
-  "Attempt to do something reasonable based on what Octopress said.
+  "Attempt to do something reasonable based on output in BUFFER.
 
 This is 'cheater mode' for not having callbacks in elisp and to avoid creating
 different output buffers for different operations to figure out what to do with
@@ -824,7 +824,7 @@ each kind of output."
 This function creates a buffer for NEW-FILENAME if one does not
 already exist, finds any windows currently displaying a buffer
 corresponding to OLD-FILENAME, and changes them to instead edit the
-NEW-FILENAME buffer. Any buffer visiting OLD-FILENAME is then killed.
+NEW-FILENAME buffer.  Any buffer visiting OLD-FILENAME is then killed.
 This function is called when posts or drafts move between published
 and unpublished status."
   (let* ((new-buffer (find-file-noselect new-filename))
@@ -840,11 +840,11 @@ and unpublished status."
   "Find the filename in an Octopress OUTPUT line.
 
 This helper function will extract a filename with preceding path
-components, if present, from a single line of Octopress output. Used
+components, if present, from a single line of Octopress output.  Used
 by `om--handle-octopress-output'.
 
 If the string PREFIX is given, the filename is assumed to begin with
-it. For example, call with '_posts' or '_drafts' to find the
+it.  For example, call with '_posts' or '_drafts' to find the
 corresponding paths in the output line."
   (let* ((found (if prefix (string-match (concat "\\(" prefix "[^\s]*\\)") output)
                   (string-match ": \\([^\s]*\\)$" output)))
