@@ -15,6 +15,11 @@ Octopress.el package.
 @end quotation
 @end copying
 
+@dircategory Emacs
+@direntry
+* Octopress.el: (octopress.el). Blogging with Octopress from Emacs.
+@end direntry
+
 @titlepage
 @title Octopress.el Manual
 @author Aaron Bieber
@@ -35,28 +40,180 @@ This manual is for octopress.el, version 1.0.
 @end ifnottex
 
 @menu
-* Overview::        Overview
-* Installing::      Installation and configuration
-* Using Octopress:: How to use Octopress.el
-* Copying::         Your rights and freedoms.
+* Overview::
+* Installing::
+* Using Octopress::
 @end menu
 
 @node Overview
 @chapter Overview
 
-What Octopress.el can do for you.
+Octopress.el is a (more) humane interface for using the Octopress
+blogging system within Emacs.
+
+Octopress.el provides interactive commands for creating and publishing
+drafts, posts, and pages; can start and stop the local server for
+previewing your site; and can even deploy your site right from within
+Emacs.
+
+Because the entire command line interface was overhauled in 3.0,
+Octopress.el will only work with Octopress 3.0 or higher. There are no
+plans to support prior versions of Octopress.
+
+For more information on using Octopress.el, @ref{Using Octopress}.
 
 @node Installing
 @chapter Installing
 
-Essential installation instructions.
+The recommended way to install Octopress.el is from the MELPA package
+repository. If you are reading this, the chances are good that you've
+already installed it, but if you haven't, the normal guidelines apply:
+
+To install Octopress.el from its Github repository, clone it into a
+location of your choice (usually within your @code{~/.emacs.d}) and
+add that location to your @code{load-path}.
+
+@section Installing from MELPA
+
+Follow these steps to install Octopress.el from the MELPA repository.
+
+@lisp
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "http://melpa.org/packages/") t)
+@end lisp
+
+@noindent
+Then refresh your packages list:
+
+@example
+M-x package-refresh-contents RET
+@end example
+
+@noindent
+And finally, install Octopress.el:
+
+@example
+M-x package-install RET octopress RET
+@end example
 
 @node Using Octopress
 @chapter Using Octopress
 
-How do use this thing.
+Octopress.el provides a central ``dashboard'', called the status
+buffer, from which you can manage your posts and drafts, start and
+stop the server, and so on.
 
-@node Copying
-@chapter Copying
+@section Displaying the status buffer
 
-License and whatnot.
+To open the status buffer, simply run @code{octopress-status}. If you
+are currently editing a buffer within your Octopress blog site,
+Octopress.el will assume you wish to manage that site and open
+immediately. If you are not editing such a buffer (or your @code{cwd}
+is not within an Octopress site), you will be prompted to locate the
+root of your Octopress site.
+
+You may wish to map a key to Octopress.el. If that is the case, it is
+recommended that such a mapping call @code{octopress-status}.
+
+The status screen consists of several headings:
+
+@itemize
+
+@item
+Blog root
+
+@item
+Server
+
+@item
+Drafts
+
+@item
+Posts
+
+@end itemize
+
+You can move the ``focus'' between the items on this screen by
+pressing @code{n} or @code{p} (``next'' and ``previous'',
+respectively).
+
+The ``Drafts'' and ``Posts'' sections will list the draft and post
+files present within your site. By default, the ``Drafts'' section is
+expanded and the ``Posts'' section is collapsed. You can toggle the
+expansion of a section by pressing @code{TAB} while focused on it.
+
+You can also move quickly to the next or previous section heading
+(which you might do to jump from a line containing a draft or post to
+its section heading) by pressing @code{C-n} or @code{C-p} (``next
+section'' and ``previous section'', respectively).
+
+@section Running commands
+
+Of course, Octopress.el would be pretty useless if all it did was show
+you lists of files!
+
+To see all of the commands available, press @code{?} within the status
+buffer. A split window will open displaying the various keys and what
+they do (a la Magit). Some keys must be pressed while the focus is on
+a certain type of item, such as ``publish'' and ``unpublish,'' while
+others can be invoked from anywhere, such as ``server'' and
+``deploy.''
+
+There are three commands that require a little more explanation:
+``create,'' ``build,'' and ``server'' are interactive commands, which
+will allow you to configure exactly what they do.
+
+When you invoke one of those three commands, the minibuffer will
+display a ``toggles'' line, allowing you to select the options for the
+command. For example, pressing @code{s} to invoke the ``server''
+command displays the following toggles line:
+
+@example
+([d]rafts [f]uture [u]npublished) [s] Server, [k] Kill, [q] Abort
+@end example
+
+Pressing the @code{d}, @code{f}, or @code{u} keys will toggle the
+state of those flags, each of which represents a class of post that
+should be served by the server when it starts. Toggles that appear in
+red are disabled, and the others are enabled.
+
+To maintain compatibility with other themes, the default toggle colors
+use the @code{font-lock-warning-face} for disabled toggles and the
+@code{font-lock-string-face} for enabled toggles. The actual faces
+used are customizable through @code{M-x customize-group RET octopress
+RET}.
+
+Finally, pressing one of @code{s}, @code{k}, or @code{q} will dismiss
+the minibuffer, performing the operation described.
+
+The same toggles are available for the ``build'' command, and the
+``create'' command will ask you what you want to create, but has no
+toggles.
+
+@section Working with drafts and posts
+
+Quite often, you will start a draft or two and work on them for a
+while before you are ready to publish them. When that time comes,
+Octopress.el is there to help you.
+
+Less often, you may want to unpublish a post, returning it to draft
+status. Octopress gives you a couple of simple commands to do this,
+but running that command behind Emacs' back creates a few problems.
+
+First, when you publish or unpublish a piece, the file is moved and
+renamed. If you are currently editing that file, it will disappear and
+Emacs will be confused, forcing you to kill the buffer and open the
+file at its new location.
+
+Fortunately, Octopress.el takes care of that for you.
+
+Simply highlight the draft or post that you wish to publish or
+unpublish and press @code{P}. If you are publishing a draft, the draft
+will have its publish date added to the Jekyll front matter, the file
+will be renamed, and it will be moved to your posts directory. Any
+windows displaying the draft will be swapped to display the
+post. Finally, buffers visiting the draft file are killed.
+
+If you wish to unpublish a post, you will be prompted to confirm that
+you really wish to do so, and then the opposite operation occurs.
