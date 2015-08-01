@@ -19,18 +19,19 @@
 
 (require 'cl-lib)
 
-(defface octopress-option-on-face
-  '((t (:foreground "#50A652")))
+(defface octopress-option-on
+  '((t (:inherit 'font-lock-string-face)))
   "An Octopress interactive option when on."
   :group 'octopress-mode)
 
-(defface octopress-option-off-face
-  '((t (:foreground "#CF4C4C")))
+(defface octopress-option-off
+  '((t (:inherit 'font-lock-warning-face)))
   "An Octopress interactive option when off."
   :group 'octopress-mode)
 
 (defface octopress-highlight-line-face
-  '((t (:background "#323878")))
+  '((((background dark)) :background "#323878")
+    (((background light)) :background "#C7CAF2"))
   "Face used to highlight the active line."
   :group 'octopress-mode)
 
@@ -351,9 +352,9 @@ This function returns the char value from CHOICES selected by the user."
         return done)
     (while (not done)
       (let* ((prompt (concat (propertize "(" 'face 'default)
-                             (propertize "[d]rafts " 'face (if drafts 'octopress-option-on-face 'octopress-option-off-face))
-                             (propertize "[f]uture " 'face (if future 'octopress-option-on-face 'octopress-option-off-face))
-                             (propertize "[u]npublished" 'face (if unpublished 'octopress-option-on-face 'octopress-option-off-face))
+                             (propertize "[d]rafts " 'face (if drafts 'octopress-option-on 'octopress-option-off))
+                             (propertize "[f]uture " 'face (if future 'octopress-option-on 'octopress-option-off))
+                             (propertize "[u]npublished" 'face (if unpublished 'octopress-option-on 'octopress-option-off))
                              ") " prompt-suffix))
              (choice (read-char-choice prompt choices)))
         (cond ((eq choice ?d)
