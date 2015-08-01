@@ -1,5 +1,7 @@
 # Octopress.el #
 
+[![MELPA](http://melpa.org/packages/octopress-badge.svg)](http://melpa.org/#/octopress)
+
 Octopress.el is a lightweight wrapper script to help you interact with Octopress
 blog site and the related Jekyll programs. This package is designed to be
 unobtrusive and to defer to Octopress and Jekyll as often as possible.
@@ -20,4 +22,5 @@ see them.
 
 ## Usage ##
 
-Usage coming soon!
+A more complete manual is available in Info format; see `C-h i` and follow the
+Octopress link.
