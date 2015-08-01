@@ -1,0 +1,62 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename octopress.info
+@settitle Octopress.el Manual 1.0
+@c %**end of header
+
+@copying
+This manual is for Octopress.el version 1.0.
+
+Copyright @copyright{} 2015 Aaron Bieber
+
+@quotation
+All rights reserved. This manual must accompany the source code of the
+Octopress.el package.
+@end quotation
+@end copying
+
+@titlepage
+@title Octopress.el Manual
+@author Aaron Bieber
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Octopress Manual
+
+This manual is for octopress.el, version 1.0.
+@end ifnottex
+
+@menu
+* Overview::        Overview
+* Installing::      Installation and configuration
+* Using Octopress:: How to use Octopress.el
+* Copying::         Your rights and freedoms.
+@end menu
+
+@node Overview
+@chapter Overview
+
+What Octopress.el can do for you.
+
+@node Installing
+@chapter Installing
+
+Essential installation instructions.
+
+@node Using Octopress
+@chapter Using Octopress
+
+How do use this thing.
+
+@node Copying
+@chapter Copying
+
+License and whatnot.
