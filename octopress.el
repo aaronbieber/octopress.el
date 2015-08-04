@@ -401,7 +401,8 @@ This function returns the char value from CHOICES selected by the user."
   (let* ((type (octopress--get-line-type))
          (filename (octopress--get-line-filename))
          (full-filename (octopress--expand-path-for-type filename type)))
-    (if (file-exists-p full-filename)
+    (if (and type
+             (file-exists-p full-filename))
         (pop-to-buffer (find-file full-filename)))))
 
 (defun octopress--new-post ()
