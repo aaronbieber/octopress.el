@@ -5,8 +5,8 @@
 ;; Author: Aaron Bieber <aaron@aaronbieber.com>
 ;; Version: 1.0
 ;; Package-Requires ((cl-lib "0.5"))
-;; Keywords: octopress, blog, mode
-;; URL: https://github.com/aaronbieber/octopress-mode
+;; Keywords: octopress, blog
+;; URL: https://github.com/aaronbieber/octopress.el
 
 ;;; Commentary:
 
