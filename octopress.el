@@ -120,6 +120,18 @@ interactive prompt to start the server."
                  (const :tag "Unpublished posts" unpublished))
   :group   'octopress-mode)
 
+(defcustom octopress-blog-root
+  ""
+  "The default location of your Octopress site.
+
+This variable is optional and, if you have more than one Octopress
+site, not recommended. If a value is supplied, it will be used as the
+location of your Octopress site every time `octopress' is initialized
+in a new Emacs session. You will never be prompted for a site location
+and the location of any currently open buffer will be ignored."
+  :type 'string
+  :group 'octopress-mode)
+
 ;;; "Public" functions
 
 ;;;###autoload
@@ -543,28 +555,34 @@ If the buffer doesn't exist yet, it will be created and prepared."
   (octopress--prepare-buffer-for-type "process" 'octopress-process-mode))
 
 (defun octopress--get-root ()
-  "Attempt to find the root of the Octopress site.
+  "Maybe return the root of the Octopress site.
 
-We assume we are running from a buffer editing a file somewhere within the site.
-If we are running from some other kind of buffer, or a buffer with no file, the
-user will be prompted to enter the path to an Octopress site."
-  (let ((status-buffer (get-buffer (octopress--buffer-name-for-type "status")))
-        (this-dir (if (and (boundp 'dired-directory) dired-directory)
-                      dired-directory
-                    (if (buffer-file-name (current-buffer))
-                        (file-name-directory (buffer-file-name (current-buffer)))))))
-    (if (and (bufferp status-buffer)
-             (assoc 'octopress-root (buffer-local-variables status-buffer))
-             (buffer-local-value 'octopress-root status-buffer))
-        (buffer-local-value 'octopress-root status-buffer)
-      (or (and this-dir
-               (let ((candidate-dir (vc-find-root this-dir "_config.yml")))
-                 (if candidate-dir (expand-file-name candidate-dir) nil)))
-          (let ((candidate-dir (read-directory-name "Octopress site root: ")))
-            (if (file-exists-p (expand-file-name "_config.yml" candidate-dir))
-                (expand-file-name candidate-dir)
-              (prog2 (message "Could not find _config.yml in `%s'." candidate-dir)
-                  nil)))))))
+If `octopress-blog-root' has a value, it is assumed to be the correct
+blog root.
+
+Otherwise, we assume we are running from a buffer editing a file
+somewhere within the site.  If we are running from some other kind of
+buffer, or a buffer with no file, the user will be prompted to enter
+the path to an Octopress site."
+  (if (not (string= "" octopress-blog-root))
+      octopress-blog-root
+    (let ((status-buffer (get-buffer (octopress--buffer-name-for-type "status")))
+          (this-dir (if (and (boundp 'dired-directory) dired-directory)
+                        dired-directory
+                      (if (buffer-file-name (current-buffer))
+                          (file-name-directory (buffer-file-name (current-buffer)))))))
+      (if (and (bufferp status-buffer)
+               (assoc 'octopress-root (buffer-local-variables status-buffer))
+               (buffer-local-value 'octopress-root status-buffer))
+          (buffer-local-value 'octopress-root status-buffer)
+        (or (and this-dir
+                 (let ((candidate-dir (vc-find-root this-dir "_config.yml")))
+                   (if candidate-dir (expand-file-name candidate-dir) nil)))
+            (let ((candidate-dir (read-directory-name "Octopress site root: ")))
+              (if (file-exists-p (expand-file-name "_config.yml" candidate-dir))
+                  (expand-file-name candidate-dir)
+                (prog2 (message "Could not find _config.yml in `%s'." candidate-dir)
+                    nil))))))))
 
 (defun octopress--maybe-redraw-status ()
   "If the status buffer exists, redraw it with current information."
