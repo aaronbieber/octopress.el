@@ -29,18 +29,18 @@
 (defface octopress-option-on
   '((t (:inherit 'font-lock-string-face)))
   "An Octopress interactive option when on."
-  :group 'octopress-mode)
+  :group 'octopress)
 
 (defface octopress-option-off
   '((t (:inherit 'font-lock-warning-face)))
   "An Octopress interactive option when off."
-  :group 'octopress-mode)
+  :group 'octopress)
 
 (defface octopress-highlight-line-face
   '((((background dark)) :background "#323878")
     (((background light)) :background "#C7CAF2"))
   "Face used to highlight the active line."
-  :group 'octopress-mode)
+  :group 'octopress)
 
 (defvar octopress-highlight-current-line-overlay
   ;; Dummy initialization
@@ -88,13 +88,13 @@
   "_posts"
   "Directory containing posts, relative to /path/to/jekyll-site/."
   :type 'string
-  :group 'octopress-mode)
+  :group 'octopress)
 
 (defcustom octopress-drafts-directory
   "_drafts"
   "Directory containing drafts, relative to /path/to/jekyll-site/."
   :type 'string
-  :group 'octopress-mode)
+  :group 'octopress)
 
 (defcustom octopress-default-build-flags
   '()
@@ -106,7 +106,7 @@ interactive prompt."
   :type    '(set (const :tag "Drafts" drafts)
                  (const :tag "Posts with future dates" future)
                  (const :tag "Unpublished posts" unpublished))
-  :group   'octopress-mode)
+  :group   'octopress)
 
 (defcustom octopress-default-server-flags
   '(drafts unpublished)
@@ -118,7 +118,7 @@ interactive prompt to start the server."
   :type    '(set (const :tag "Drafts" drafts)
                  (const :tag "Posts with future dates" future)
                  (const :tag "Unpublished posts" unpublished))
-  :group   'octopress-mode)
+  :group   'octopress)
 
 (defcustom octopress-blog-root
   ""
@@ -130,13 +130,13 @@ location of your Octopress site every time `octopress' is initialized
 in a new Emacs session. You will never be prompted for a site location
 and the location of any currently open buffer will be ignored."
   :type 'string
-  :group 'octopress-mode)
+  :group 'octopress)
 
 ;;; "Public" functions
 
 ;;;###autoload
 (defun octopress-status ()
-  "The main entry point into octopress-mode."
+  "The main entry point into octopress."
   (interactive)
   (let ((octopress-buffer (octopress--setup)))
     (if octopress-buffer
@@ -218,18 +218,18 @@ and the location of any currently open buffer will be ignored."
         (octopress--start-build-process drafts future unpublished)))))
 
 (defun octopress-status-quit ()
-  "Quit the Octopress Mode window, preserving its buffer."
+  "Quit the Octopress status window, preserving its buffer."
   (interactive)
   (octopress-toggle-command-window t)
   (quit-window))
 
 (defun octopress-server-quit ()
-  "Quit the Octopress Server Mode window, preserving its buffer."
+  "Quit the Octopress Server window, preserving its buffer."
   (interactive)
   (quit-window))
 
 (defun octopress-process-quit ()
-  "Quit the Octopress Process Mode window, preserving its buffer."
+  "Quit the Octopress Process window, preserving its buffer."
   (interactive)
   (quit-window))
 
@@ -440,7 +440,7 @@ This function returns the char value from CHOICES selected by the user."
     (octopress--run-octopress-command (concat "octopress new page \"" name "\""))))
 
 (defun octopress--buffer-is-configured (buffer)
-  "Return t if BUFFER is configured properly for Octopress Mode."
+  "Return t if BUFFER is configured properly for Octopress."
   (and (bufferp buffer)
        (let ((vars (buffer-local-variables
                     (get-buffer buffer))))
@@ -531,7 +531,7 @@ This function returns the char value from CHOICES selected by the user."
         buf))))
 
 (defun octopress--prepare-status-buffer ()
-  "Return the Octopress Mode (\"status\") buffer.
+  "Return the Octopress (\"status\") buffer.
 
 If the buffer doesn't exist yet, it will be created and prepared."
   (let ((buffer-name (octopress--buffer-name-for-type "status")))
@@ -543,13 +543,13 @@ If the buffer doesn't exist yet, it will be created and prepared."
         status-buffer))))
 
 (defun octopress--prepare-server-buffer ()
-  "Return the Octopress Server Mode buffer.
+  "Return the Octopress Server buffer.
 
 If the buffer doesn't exist yet, it will be created and prepared."
   (octopress--prepare-buffer-for-type "server" 'octopress-server-mode))
 
 (defun octopress--prepare-process-buffer ()
-  "Return the Octopress Process Mode buffer.
+  "Return the Octopress Process buffer.
 
 If the buffer doesn't exist yet, it will be created and prepared."
   (octopress--prepare-buffer-for-type "process" 'octopress-process-mode))
