@@ -273,7 +273,7 @@ result in newer posts appearing first in the list."
         (if (or (eq type 'drafts)
                 (yes-or-no-p "Really unpublish this post? "))
             (progn (octopress-toggle-command-window t)
-                   (octopress--run-octopress-command (concat "octopress " subcommand " " filename))))
+                   (octopress--run-octopress-command (concat subcommand " " filename))))
       (message "The file `%s' doesn't exist in `%s'. Try refreshing?" filename octopress-posts-directory))))
 
 (defun octopress-toggle-command-window (&optional hide)
@@ -427,17 +427,17 @@ This function returns the char value from CHOICES selected by the user."
 (defun octopress--new-post ()
   (octopress-toggle-command-window t)
   (let ((name (read-string "Post name: ")))
-    (octopress--run-octopress-command (concat "octopress new post \"" name "\""))))
+    (octopress--run-octopress-command (concat "new post \"" name "\""))))
 
 (defun octopress--new-draft ()
   (octopress-toggle-command-window t)
   (let ((name (read-string "Draft name: ")))
-    (octopress--run-octopress-command (concat "octopress new draft \"" name "\""))))
+    (octopress--run-octopress-command (concat "new draft \"" name "\""))))
 
 (defun octopress--new-page ()
   (octopress-toggle-command-window t)
   (let ((name (read-string "Page name: ")))
-    (octopress--run-octopress-command (concat "octopress new page \"" name "\""))))
+    (octopress--run-octopress-command (concat "new page \"" name "\""))))
 
 (defun octopress--buffer-is-configured (buffer)
   "Return t if BUFFER is configured properly for Octopress."
@@ -449,9 +449,7 @@ This function returns the char value from CHOICES selected by the user."
 
 (defun octopress--start-deploy-process ()
   (octopress--setup)
-  (let* ((root (octopress--get-root))
-         (command "octopress deploy"))
-    (octopress--run-octopress-command (concat "cd " root " && " command))))
+  (octopress--run-octopress-command "deploy"))
 
 (defun octopress--start-build-process (&optional with-drafts with-future with-unpublished)
   (octopress--setup)
@@ -460,8 +458,8 @@ This function returns the char value from CHOICES selected by the user."
          (future-opt (if with-future " --future" nil))
          (unpublished-opt (if with-unpublished " --unpublished" nil))
          (root (octopress--get-root))
-         (command (concat "jekyll build" drafts-opt future-opt unpublished-opt)))
-    (octopress--run-octopress-command (concat "cd " root " && " command))))
+         (command (concat "build" drafts-opt future-opt unpublished-opt)))
+    (octopress--run-jekyll-command command)))
 
 (defun octopress--start-server-process (&optional with-drafts with-future with-unpublished)
   (octopress--setup)
@@ -764,7 +762,15 @@ STATUS is an alist of status names and their printable values."
   (octopress--get-articles-in-dir-by-date-desc octopress-drafts-directory))
 
 (defun octopress--run-octopress-command (command)
-  "Run an Octopress command, sending output to the process buffer.
+  (message "Running Octopress...")
+  (octopress--run-command (concat "octopress " command)))
+
+(defun octopress--run-jekyll-command (command)
+  (message "Running Jekyll...")
+  (octopress--run-command (concat "jekyll " command)))
+
+(defun octopress--run-command (command)
+  "Run an Octopress-related command, sending output to the process buffer.
 
 Returns the process object."
   (octopress--setup)
@@ -774,7 +780,6 @@ Returns the process object."
     (with-current-buffer pbuffer
       (let ((inhibit-read-only t))
         (goto-char (point-max))
-        (message (concat "Running Octopress..."))
         (insert (propertize (concat "Running `" command "'...\n\n") 'face 'font-lock-variable-name-face))))
     (let ((process (start-process-shell-command
                     "octopress"
