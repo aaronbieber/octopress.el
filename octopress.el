@@ -754,18 +754,22 @@ STATUS is an alist of status names and their printable values."
                 #'(lambda (f1 f2) (time-less-p (nth 6 f2) (nth 6 f1))))))
 
 (defun octopress--get-posts ()
+  "Get a list of posts files."
   (octopress--setup)
   (octopress--get-articles-in-dir-by-date-desc octopress-posts-directory))
 
 (defun octopress--get-drafts ()
+  "Get a list of drafts files."
   (octopress--setup)
   (octopress--get-articles-in-dir-by-date-desc octopress-drafts-directory))
 
 (defun octopress--run-octopress-command (command)
+  "Run an Octopress command."
   (message "Running Octopress...")
   (octopress--run-command (concat "octopress " command)))
 
 (defun octopress--run-jekyll-command (command)
+  "Run a Jekyll command."
   (message "Running Jekyll...")
   (octopress--run-command (concat "jekyll " command)))
 
