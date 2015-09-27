@@ -763,6 +763,15 @@ STATUS is an alist of status names and their printable values."
   (octopress--setup)
   (octopress--get-articles-in-dir-by-date-desc octopress-drafts-directory))
 
+(defun octopress--bundler-command-prefix ()
+  "Return a `bundle exec' command prefix if required.
+
+If a Gemfile is found in the root of the blog, we'll assume Bundler is
+being used and we need to run Octopress with `bundle exec'."
+  (if (file-exists-p (expand-file-name "Gemfile" (octopress--get-root)))
+      "bundle exec "
+    ""))
+
 (defun octopress--run-octopress-command (command)
   "Run an Octopress command."
   (message "Running Octopress...")
@@ -780,7 +789,9 @@ Returns the process object."
   (octopress--setup)
   (let ((pbuffer (octopress--prepare-process-buffer))
         (root (octopress--get-root))
-        (command (replace-regexp-in-string "'" "\\\\'" command)))
+        (command (concat
+                  (octopress--bundler-command-prefix)
+                  (replace-regexp-in-string "'" "\\\\'" command))))
     (with-current-buffer pbuffer
       (let ((inhibit-read-only t))
         (goto-char (point-max))
