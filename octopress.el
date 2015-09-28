@@ -48,7 +48,7 @@
   "Overlay for highlighting the current line.")
 
 (overlay-put octopress-highlight-current-line-overlay
-	     'face 'octopress-highlight-line-face)
+             'face 'octopress-highlight-line-face)
 
 (defvar octopress-mode-map
   (let ((map (make-sparse-keymap)))
@@ -306,7 +306,7 @@ it exists and do nothing otherwise."
         (if (and octopress-buffer octopress-root)
             (progn (with-current-buffer octopress-buffer
                      (make-local-variable 'octopress-root))
-                octopress-buffer)
+                   octopress-buffer)
           (progn (kill-buffer octopress-buffer)
                  nil))))))
 
@@ -345,13 +345,13 @@ type', e.g. 'drafts or 'posts, and the cdr of the cons is the filename.
 
 If the current line of the current buffer does not have a valid thing type, this
 function returns nil."
-    (let* ((thing-type (get-text-property (line-beginning-position) 'invisible))
-           (line (buffer-substring (line-beginning-position) (line-end-position)))
-           (found (string-match "^\s*\\([^ ]*\\)" line))
-           (filename (match-string 1 line)))
-      (if (and thing-type found filename)
-          (cons thing-type (octopress--strip-text-properties filename))
-        nil)))
+  (let* ((thing-type (get-text-property (line-beginning-position) 'invisible))
+         (line (buffer-substring (line-beginning-position) (line-end-position)))
+         (found (string-match "^\s*\\([^ ]*\\)" line))
+         (filename (match-string 1 line)))
+    (if (and thing-type found filename)
+        (cons thing-type (octopress--strip-text-properties filename))
+      nil)))
 
 (defun octopress--read-char-with-toggles (prompt-suffix choices &optional default-to-on)
   "Read a selection from a menu with toggles.
