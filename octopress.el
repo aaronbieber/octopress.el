@@ -467,7 +467,8 @@ This function returns the char value from CHOICES selected by the user."
          (drafts-opt (if with-drafts " --drafts" nil))
          (future-opt (if with-future " --future" nil))
          (unpublished-opt (if with-unpublished " --unpublished" nil))
-         (command (concat "jekyll serve" drafts-opt future-opt unpublished-opt)))
+         (command (concat (octopress--bundler-command-prefix)
+                           "jekyll serve" drafts-opt future-opt unpublished-opt)))
     (if (processp (get-buffer-process (octopress--buffer-name-for-type "server")))
         (message "Server already running!")
       (with-current-buffer buffer
