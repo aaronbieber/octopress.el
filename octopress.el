@@ -261,6 +261,7 @@ result in newer posts appearing first in the list."
     (insert (concat "{% post_url " post " %}"))))
 
 (defun octopress--publish-unpublish (type filename)
+  "Publish or unpublish a thing based on TYPE, found at FILENAME."
   (let ((source-path (cond ((eq type 'posts)
                             (expand-file-name octopress-posts-directory (octopress--get-root)))
                            ((eq type 'drafts)
@@ -774,17 +775,17 @@ being used and we need to run Octopress with `bundle exec'."
     ""))
 
 (defun octopress--run-octopress-command (command)
-  "Run an Octopress command."
+  "Run an Octopress COMMAND."
   (message "Running Octopress...")
   (octopress--run-command (concat "octopress " command)))
 
 (defun octopress--run-jekyll-command (command)
-  "Run a Jekyll command."
+  "Run a Jekyll COMMAND."
   (message "Running Jekyll...")
   (octopress--run-command (concat "jekyll " command)))
 
 (defun octopress--run-command (command)
-  "Run an Octopress-related command, sending output to the process buffer.
+  "Run an Octopress-related COMMAND, sending output to the process buffer.
 
 Returns the process object."
   (octopress--setup)
@@ -822,6 +823,7 @@ Returns the process object."
            (octopress--handle-octopress-output buffer)))))
 
 (defun octopress--generic-process-filter (proc string)
+  "Filter PROC output of STRING and manipulate the buffer."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((moving (= (point) (process-mark proc)))
