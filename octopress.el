@@ -832,7 +832,7 @@ Returns the process object."
         (save-excursion
           ;; Insert the text, advancing the process marker.
           (goto-char (process-mark proc))
-          (insert string)
+          (insert (replace-regexp-in-string "" "" string))
           (set-marker (process-mark proc) (point)))
         (when moving
           (goto-char (process-mark proc))
