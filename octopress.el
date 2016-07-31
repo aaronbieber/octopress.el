@@ -173,9 +173,6 @@ and the location of any currently open buffer will be ignored."
                       (message "Stopping server...")
                       (octopress--stop-server-process)))))))
 
-(defun octopress-restart-server ()
-  (interactive))
-
 (defun octopress-show-server ()
   "Pop to the server output buffer."
   (interactive)
