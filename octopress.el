@@ -11,14 +11,15 @@
 ;;; Commentary:
 
 ;; Octopress.el is a lightweight wrapper script to help you interact
-;; with Octopress blog site and the related Jekyll programs. This
+;; with Octopress blog site and the related Jekyll programs.  This
 ;; package is designed to be unobtrusive and to defer to Octopress and
 ;; Jekyll as often as possible.
 
 ;; This package was built with the assumption of Octopress 3.0 and
 ;; will probably not work with previous (non-gem) versions of
-;; Octopress. Specifically, it expects to be able to use commands like
-;; `octopress new post` rather than the old-style `rake new_post[]`.
+;; Octopress.  Specifically, it expects to be able to use commands
+;; like `octopress new post` rather than the old-style `rake
+;; new_post[]`.
 
 ;; Full documentation is available as an Info manual.
 
@@ -125,9 +126,9 @@ interactive prompt to start the server."
   "The default location of your Octopress site.
 
 This variable is optional and, if you have more than one Octopress
-site, not recommended. If a value is supplied, it will be used as the
+site, not recommended.  If a value is supplied, it will be used as the
 location of your Octopress site every time `octopress' is initialized
-in a new Emacs session. You will never be prompted for a site location
+in a new Emacs session.  You will never be prompted for a site location
 and the location of any currently open buffer will be ignored."
   :type 'string
   :group 'octopress)
@@ -144,11 +145,13 @@ and the location of any currently open buffer will be ignored."
                (pop-to-buffer octopress-buffer)))))
 
 (defun octopress-refresh-status ()
+  "Refresh the status display."
   (interactive)
   (octopress-toggle-command-window t)
   (octopress--maybe-redraw-status))
 
 (defun octopress-start-stop-server ()
+  "Start or stop the server based on user input."
   (interactive)
   (let* ((config (octopress--read-char-with-toggles
                   "[s] Server, [k] Kill, [q] Abort"
@@ -171,11 +174,13 @@ and the location of any currently open buffer will be ignored."
   (interactive))
 
 (defun octopress-show-server ()
+  "Pop to the server output buffer."
   (interactive)
   (octopress-toggle-command-window t)
   (pop-to-buffer (octopress--prepare-server-buffer)))
 
 (defun octopress-show-process ()
+  "Pop to the process output buffer."
   (interactive)
   (octopress-toggle-command-window t)
   (pop-to-buffer (octopress--prepare-process-buffer)))
@@ -196,6 +201,7 @@ and the location of any currently open buffer will be ignored."
            (message "Aborted.")))))
 
 (defun octopress-deploy ()
+  "Initiate a deploy upon interactive confirmation."
   (interactive)
   (when (yes-or-no-p "Really deploy your site? ")
     (progn
@@ -203,6 +209,7 @@ and the location of any currently open buffer will be ignored."
       (octopress--start-deploy-process))))
 
 (defun octopress-build ()
+  "Initiate a Jekyll build upon interactive confirmation."
   (interactive)
   (let* ((config (octopress--read-char-with-toggles
                   "[b] Build, [q] Abort"
@@ -234,6 +241,7 @@ and the location of any currently open buffer will be ignored."
   (quit-window))
 
 (defun octopress-publish-unpublish ()
+  "Publish a draft or unpublish a post (upon confirmation)."
   (interactive)
   (let* ((thing (octopress--file-near-point))
          (thing-type (car thing))
@@ -312,6 +320,9 @@ it exists and do nothing otherwise."
                  nil))))))
 
 (defun octopress--draw-command-help (buffer)
+  "Output the help menu into BUFFER.
+
+Note that BUFFER's contents will be destroyed."
   (with-current-buffer buffer
     (setq buffer-read-only t)
     (let ((inhibit-read-only t))
@@ -355,7 +366,7 @@ function returns nil."
       nil)))
 
 (defun octopress--read-char-with-toggles (prompt-suffix choices &optional default-to-on)
-  "Read a selection from a menu with toggles.
+  "Toggle options on and off interactively.
 
 Display a fixed menu of toggles followed by PROMPT-SUFFIX.  Accept any of
 the default choices (d, f, u, q) as well as the supplied CHOICES, which
@@ -397,16 +408,25 @@ This function returns the char value from CHOICES selected by the user."
   return))
 
 (defun octopress--get-line-type ()
+  "Get the 'line type' property of the current line.
+
+This function makes the assumption that the line's type is saved in a
+text property at position zero."
   (save-excursion
     (beginning-of-line)
     (get-text-property (point) 'invisible)))
 
 (defun octopress--get-line-filename ()
+  "Get the filename at point."
   (save-excursion
     (back-to-indentation)
     (thing-at-point 'filename)))
 
 (defun octopress--expand-path-for-type (filename type)
+  "Given a FILENAME and line TYPE, expand the file's path.
+
+This function assumes that the base paths for every TYPE have been
+defined in the configuration."
   (let ((type-dir (cdr (assoc type `((posts . ,octopress-posts-directory)
                                      (drafts . ,octopress-drafts-directory))))))
     (and filename
@@ -426,16 +446,19 @@ This function returns the char value from CHOICES selected by the user."
         (pop-to-buffer (find-file full-filename)))))
 
 (defun octopress--new-post ()
+  "Call the new post command."
   (octopress-toggle-command-window t)
   (let ((name (read-string "Post name: ")))
     (octopress--run-octopress-command (concat "new post \"" name "\""))))
 
 (defun octopress--new-draft ()
+  "Call the new draft command."
   (octopress-toggle-command-window t)
   (let ((name (read-string "Draft name: ")))
     (octopress--run-octopress-command (concat "new draft \"" name "\""))))
 
 (defun octopress--new-page ()
+  "Call the new page command."
   (octopress-toggle-command-window t)
   (let ((name (read-string "Page name: ")))
     (octopress--run-octopress-command (concat "new page \"" name "\""))))
@@ -449,10 +472,15 @@ This function returns the char value from CHOICES selected by the user."
               (string= (cdr (assoc 'major-mode vars)) "octopress-mode")))))
 
 (defun octopress--start-deploy-process ()
+  "Run the deploy command."
   (octopress--setup)
   (octopress--run-octopress-command "deploy"))
 
 (defun octopress--start-build-process (&optional with-drafts with-future with-unpublished)
+  "Run the build command.
+
+Options WITH-DRAFTS, WITH-FUTURE, and WITH-UNPUBLISHED correspond to
+the Jekyll flags with the same names."
   (octopress--setup)
   (let* ((process-buffer (octopress--prepare-process-buffer))
          (drafts-opt (if with-drafts " --drafts" nil))
@@ -463,6 +491,10 @@ This function returns the char value from CHOICES selected by the user."
     (octopress--run-jekyll-command command)))
 
 (defun octopress--start-server-process (&optional with-drafts with-future with-unpublished)
+  "Run the server start command.
+
+Options WITH-DRAFTS, WITH-FUTURE, and WITH-UNPUBLISHED correspond to
+the Jekyll flags with the same names."
   (octopress--setup)
   (let* ((buffer (octopress--prepare-server-buffer))
          (drafts-opt (if with-drafts " --drafts" nil))
@@ -487,6 +519,7 @@ This function returns the char value from CHOICES selected by the user."
       (octopress--maybe-redraw-status))))
 
 (defun octopress--stop-server-process ()
+  "Call the stop server command."
   (let ((server-process (get-buffer-process (octopress--buffer-name-for-type "server"))))
     (if (processp server-process)
         (process-send-string server-process (kbd "C-c")))))
@@ -496,6 +529,10 @@ This function returns the char value from CHOICES selected by the user."
   (concat "*octopress-" type "*"))
 
 (defun octopress--server-sentinel (process event)
+  "Handle Octopress process output.
+
+Standard arguments PROCESS and EVENT correspond to those documented in
+`set-process-sentinel'."
   (octopress--maybe-redraw-status)
   (let ((program (process-name process))
         (event (replace-regexp-in-string "\n$" "" event)))
@@ -508,11 +545,18 @@ This function returns the char value from CHOICES selected by the user."
                       (goto-char (point-max)))))))))
 
 (defun octopress--server-status ()
+  "Return the status of the server (whether it is running).
+
+Function returns t if the server appears to be running, nil
+otherwise."
   (let ((server-process (get-buffer-process (octopress--buffer-name-for-type "server"))))
     (and (processp server-process)
          (string= (process-status server-process) "run"))))
 
 (defun octopress--server-status-string ()
+  "Return the server's status as an English word.
+
+Returns 'Running' or 'Stopped', appropriately."
   (if (octopress--server-status)
       "Running"
     "Stopped"))
@@ -591,10 +635,10 @@ the path to an Octopress site."
         (octopress--draw-status status-buffer))))
 
 (defun octopress--get-status-data (buffer)
-  "Return the status of the Octopress site linked to BUFFER.
+  "Return statistics about the Octopress site linked to BUFFER.
 
-This function can only be called after `octopress-status' has been run and must be
-passed the resulting BUFFER."
+This function can only be called after `octopress-status' has been run
+and must be passed the resulting BUFFER."
   (octopress--setup)
   (with-current-buffer buffer
     `((posts-count . ,(number-to-string
@@ -683,6 +727,7 @@ If REVERSE is not nil, move to the previous visible 'thing."
   (goto-char (line-beginning-position)))
 
 (defun octopress--maybe-toggle-visibility ()
+  "If point is on something that can be shown or hidden, do so."
   (interactive)
   (let ((hidden (get-text-property (line-beginning-position) 'hidden)))
     (if hidden
@@ -731,6 +776,10 @@ STATUS is an alist of status names and their printable values."
             (force-window-update window))))))
 
 (defun octopress--get-display-list (things visibility-name)
+  "A helper to create a text column of THINGS.
+
+VISIBILITY-NAME will be applied to the `invisible' property of all
+items in this list, allowing them to be shown or hidden as a group."
   (let ((thing-list ""))
     (cl-loop for thing in things do
              (setq thing-list
@@ -740,6 +789,7 @@ STATUS is an alist of status names and their printable values."
     (propertize thing-list 'invisible visibility-name)))
 
 (defun octopress--legend-item (key label column-width)
+  "Format a KEY with LABEL in a COLUMN-WIDTH column, for use in the legend."
   (let ((pad (- column-width (+ (length key) (length label) 2))))
     (concat
      (propertize key 'face 'font-lock-keyword-face) ": "
@@ -807,6 +857,9 @@ Returns the process object."
       process)))
 
 (defun octopress--octopress-sentinel (process event)
+  "Process sentinel for the Octopress program.
+
+See `set-process-sentinel' for PROCESS and EVENT details."
   (let ((program (process-name process))
         (event (replace-regexp-in-string "\n$" "" event))
         (buffer (get-buffer (octopress--buffer-name-for-type "process"))))
@@ -914,6 +967,7 @@ Return a propertized string like KEY: LABEL."
       text)
 
 (defun octopress--highlight-current-line ()
+  "Create a highlight effect on the current line using overlays."
   (if (octopress--thing-on-this-line)
       (let ((end (save-excursion
                    (forward-line 1)
