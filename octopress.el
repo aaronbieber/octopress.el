@@ -43,6 +43,9 @@
   "Face used to highlight the active line."
   :group 'octopress)
 
+;; Avoid unbound variable errors.
+(defvar octopress-root)
+
 (defvar octopress-highlight-current-line-overlay
   ;; Dummy initialization
   (make-overlay 1 1)
