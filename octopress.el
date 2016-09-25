@@ -136,6 +136,25 @@ and the location of any currently open buffer will be ignored."
   :type 'string
   :group 'octopress)
 
+(defcustom octopress-server-url
+  "http://localhost:4000/"
+  "URL of the index page of the locally running server.
+
+This is used for launching the site when a server is running, so it
+should include the base path of the site if that is not simply '/'.
+For example, this URL might be 'http://localhost:4000/blog/'."
+  :type 'string
+  :group 'octopress)
+
+(defcustom octopress-file-name-date-pattern
+  (rx bol (repeat 4 digit) "-" (repeat 2 digit) "-" (repeat 2 digit))
+  "A regular expression matching the date portion of a published filename.
+
+This pattern is used to capture the date portion to construct the
+corresponding browse URL."
+  :type 'string
+  :group 'octopress)
+
 ;;; "Public" functions
 
 ;;;###autoload
@@ -152,6 +171,66 @@ and the location of any currently open buffer will be ignored."
   (interactive)
   (octopress-toggle-command-window t)
   (octopress--maybe-redraw-status))
+
+(defun octopress-browse ()
+  "Open the Octopress site URL in a browser.
+
+If the current buffer is that of an Octopress post or draft, open that
+post or draft's URL.  This function is naive to customized Octopress
+URL patterns, which may be addressed in a future version of this
+package."
+  (interactive)
+  (let* ((buffer-type (octopress--in-blog-buffer-p))
+         (filename (if buffer-type (file-name-base (buffer-file-name))))
+         url)
+    (if buffer-type
+        (setq url (concat octopress-server-url "/"
+                          (if (eq buffer-type 'post)
+                              (concat (octopress--get-url-date-from-filename filename) "/"
+                                      (octopress--get-filename-no-date filename))
+                            (concat (format-time-string "%Y/%m/%d") "/" filename))
+                          ".html")))
+    (browse-url (if url url
+                  octopress-server-url))))
+
+(defun octopress--get-url-date-from-filename (filename)
+  "Get a URL-formatted version of the date from the given FILENAME."
+  (replace-regexp-in-string "-" "/" (octopress--get-date-from-filename filename)))
+
+(defun octopress--get-date-from-filename (filename)
+  "From a base FILENAME, extracts the date portion."
+  (if (string-match octopress-file-name-date-pattern filename)
+      (match-string 0 filename)))
+
+(octopress--get-filename-no-date "2016-09-25-agenda-interactions-primer.markdown")
+
+(defun octopress--get-filename-no-date (filename)
+  "Return a post FILENAME without its date prefix portion.
+
+This function requires that `octopress-file-name-date-pattern' is accurate."
+  (replace-regexp-in-string (concat octopress-file-name-date-pattern "-") "" filename))
+
+(defun octopress--in-blog-buffer-p ()
+  "Return nil if the current buffer is neither a draft nor a post.
+
+This will only work if the current buffer has a filename and it is
+within the known 'drafts' or 'posts' directory.
+
+Return the symbol 'draft if the current buffer is a saved draft, and
+'post if it is a saved post.  Return nil otherwise."
+  (if (buffer-file-name)
+      (let ((buffer-dir (directory-file-name
+                         (file-name-directory (buffer-file-name))))
+            (posts-dir (expand-file-name
+                        octopress-posts-directory
+                        (octopress--get-root)))
+            (drafts-dir (expand-file-name
+                         octopress-drafts-directory
+                         (octopress--get-root))))
+        (or (if (string= buffer-dir posts-dir)
+                'post)
+            (if (string= buffer-dir drafts-dir)
+                'draft)))))
 
 (defun octopress-start-stop-server ()
   "Start or stop the server based on user input."
