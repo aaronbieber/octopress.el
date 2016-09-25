@@ -186,7 +186,7 @@ package."
          url)
     (if buffer-type
         (setq url (concat octopress-server-url "/"
-                          (if (eq buffer-type 'post)
+                          (if (eq buffer-type 'posts)
                               (concat (octopress--get-url-date-from-filename filename) "/"
                                       (octopress--get-filename-no-date filename))
                             (concat (format-time-string "%Y/%m/%d") "/" filename))
@@ -209,14 +209,24 @@ package."
 This function requires that `octopress-file-name-date-pattern' is accurate."
   (replace-regexp-in-string (concat octopress-file-name-date-pattern "-") "" filename))
 
+(defun octopress--get-thing-from-buffer-or-line ()
+  "Get the type and filename from the current buffer or status line."
+  (let* ((buffer-type (octopress--in-blog-buffer-p))
+         (status-file (octopress--file-near-point))
+         (type (or buffer-type (car status-file)))
+         (filename (if buffer-type
+                       (file-name-nondirectory (buffer-file-name))
+                     (cdr status-file))))
+    (cons type filename)))
+
 (defun octopress--in-blog-buffer-p ()
   "Return nil if the current buffer is neither a draft nor a post.
 
 This will only work if the current buffer has a filename and it is
 within the known 'drafts' or 'posts' directory.
 
-Return the symbol 'draft if the current buffer is a saved draft, and
-'post if it is a saved post.  Return nil otherwise."
+Return the symbol 'drafts if the current buffer is a saved draft, and
+'posts if it is a saved post.  Return nil otherwise."
   (if (buffer-file-name)
       (let ((buffer-dir (directory-file-name
                          (file-name-directory (buffer-file-name))))
@@ -227,9 +237,9 @@ Return the symbol 'draft if the current buffer is a saved draft, and
                          octopress-drafts-directory
                          (octopress--get-root))))
         (or (if (string= buffer-dir posts-dir)
-                'post)
+                'posts)
             (if (string= buffer-dir drafts-dir)
-                'draft)))))
+                'drafts)))))
 
 (defun octopress-start-stop-server ()
   "Start or stop the server based on user input."
@@ -321,7 +331,7 @@ Return the symbol 'draft if the current buffer is a saved draft, and
 (defun octopress-publish-unpublish ()
   "Publish a draft or unpublish a post (upon confirmation)."
   (interactive)
-  (let* ((thing (octopress--file-near-point))
+  (let* ((thing (octopress--get-thing-from-buffer-or-line))
          (thing-type (car thing))
          (filename (cdr thing)))
     (if (memq thing-type '(drafts posts))
@@ -361,7 +371,7 @@ result in newer posts appearing first in the list."
                 (yes-or-no-p "Really unpublish this post? "))
             (progn (octopress-toggle-command-window t)
                    (octopress--run-octopress-command (concat subcommand " " filename))))
-      (message "The file `%s' doesn't exist in `%s'. Try refreshing?" filename octopress-posts-directory))))
+      (message "The file `%s' doesn't exist in `%s'. Try refreshing?" filename source-path))))
 
 (defun octopress-toggle-command-window (&optional hide)
   "Toggle the display of a helpful command window.
