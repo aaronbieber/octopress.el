@@ -203,8 +203,6 @@ package."
   (if (string-match octopress-file-name-date-pattern filename)
       (match-string 0 filename)))
 
-(octopress--get-filename-no-date "2016-09-25-agenda-interactions-primer.markdown")
-
 (defun octopress--get-filename-no-date (filename)
   "Return a post FILENAME without its date prefix portion.
 
@@ -425,7 +423,7 @@ Note that BUFFER's contents will be destroyed."
        (octopress--legend-item "q" "Quit" 18))
       (goto-char (point-min)))))
 
-(defun octopress--thing-on-this-line ()
+(defun octopress--thing-on-this-line-p ()
   "Determine whether there is a thing on this line."
   (get-text-property (line-beginning-position) 'thing))
 
@@ -1048,7 +1046,7 @@ Return a propertized string like KEY: LABEL."
 
 (defun octopress--highlight-current-line ()
   "Create a highlight effect on the current line using overlays."
-  (if (octopress--thing-on-this-line)
+  (if (octopress--thing-on-this-line-p)
       (let ((end (save-excursion
                    (forward-line 1)
                    (point))))
