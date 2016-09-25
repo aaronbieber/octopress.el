@@ -25,7 +25,8 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl-lib))
 
 (defface octopress-option-on
   '((t (:inherit 'font-lock-string-face)))
