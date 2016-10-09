@@ -66,6 +66,8 @@
     (define-key map "b" 'octopress-build)
     (define-key map "$" 'octopress-show-server)
     (define-key map "!" 'octopress-show-process)
+    (define-key map "i" 'octopress-isolate)
+    (define-key map "I" 'octopress-integrate)
     (define-key map "n" 'octopress--move-to-next-thing)
     (define-key map "p" 'octopress--move-to-previous-thing)
     (define-key map "P" 'octopress-publish-unpublish)
@@ -338,6 +340,22 @@ Return the symbol 'drafts if the current buffer is a saved draft, and
         (octopress--publish-unpublish thing-type filename)
       (message "There is no post nor draft on this line."))))
 
+(defun octopress-isolate ()
+  "Isolate the current post."
+  (interactive)
+  (let* ((thing (octopress--get-thing-from-buffer-or-line))
+         (thing-type (car thing))
+         (filename (if (eq thing-type 'posts)
+                       (concat (file-name-as-directory octopress-posts-directory)
+                               (cdr thing))
+                     "")))
+    (octopress--isolate filename)))
+
+(defun octopress-integrate ()
+  "Integrate exiled posts."
+  (interactive)
+  (octopress--run-octopress-command "integrate"))
+
 (defun octopress-insert-post-url ()
   "Prompt for a post and insert a Jekyll URL tag at point.
 
@@ -372,6 +390,10 @@ result in newer posts appearing first in the list."
             (progn (octopress-toggle-command-window t)
                    (octopress--run-octopress-command (concat subcommand " " filename))))
       (message "The file `%s' doesn't exist in `%s'. Try refreshing?" filename source-path))))
+
+(defun octopress--isolate (path)
+  "Isolate the post at PATH."
+  (octopress--run-octopress-command (concat "isolate " path)))
 
 (defun octopress-toggle-command-window (&optional hide)
   "Toggle the display of a helpful command window.
@@ -428,8 +450,10 @@ Note that BUFFER's contents will be destroyed."
        (octopress--legend-item "P" "[Un]publish" 18) "\n"
        (octopress--legend-item "d" "Deploy" 18)
        (octopress--legend-item "g" "Refresh" 18)
+       (octopress--legend-item "i" "Isolate" 18)
+       (octopress--legend-item "i" "Integrate" 18) "\n"
        (octopress--legend-item "!" "Show Process" 18)
-       (octopress--legend-item "$" "Show Server" 18) "\n"
+       (octopress--legend-item "$" "Show Server" 18)
        (octopress--legend-item "q" "Quit" 18))
       (goto-char (point-min)))))
 
@@ -516,7 +540,9 @@ text property at position zero."
 This function assumes that the base paths for every TYPE have been
 defined in the configuration."
   (let ((type-dir (cdr (assoc type `((posts . ,octopress-posts-directory)
-                                     (drafts . ,octopress-drafts-directory))))))
+                                     (drafts . ,octopress-drafts-directory)
+                                     (exiled . ,(concat (file-name-as-directory octopress-posts-directory)
+                                                        "_exile")))))))
     (and filename
          type-dir
          (expand-file-name
@@ -671,7 +697,8 @@ If the buffer doesn't exist yet, it will be created and prepared."
         (get-buffer buffer-name)
       (let ((status-buffer (octopress--prepare-buffer-for-type "status" 'octopress-mode)))
         (with-current-buffer status-buffer
-          (add-to-invisibility-spec 'posts))
+          (add-to-invisibility-spec 'posts)
+          (add-to-invisibility-spec 'exiled))
         status-buffer))))
 
 (defun octopress--prepare-server-buffer ()
@@ -728,20 +755,31 @@ the path to an Octopress site."
 This function can only be called after `octopress-status' has been run
 and must be passed the resulting BUFFER."
   (octopress--setup)
-  (with-current-buffer buffer
-    `((posts-count . ,(number-to-string
-                       (length
-                        (directory-files
-                         (expand-file-name octopress-posts-directory (octopress--get-root))
-                         nil
-                         "*.md$\\|.*markdown$"))))
-      (drafts-count . ,(number-to-string
-                        (length
-                         (directory-files
-                          (expand-file-name octopress-drafts-directory (octopress--get-root))
-                          nil
-                          ".*md$\\|.*markdown$"))))
-      (server-status . ,(octopress--server-status-string)))))
+  (let ((exile-path (expand-file-name (concat (file-name-as-directory octopress-posts-directory)
+                                              (file-name-as-directory "_exile"))
+                                      (octopress--get-root))))
+    (with-current-buffer buffer
+      `((posts-count . ,(number-to-string
+                         (length
+                          (directory-files
+                           (expand-file-name octopress-posts-directory (octopress--get-root))
+                           nil
+                           "*.md$\\|.*markdown$"))))
+        (drafts-count . ,(number-to-string
+                          (length
+                           (directory-files
+                            (expand-file-name octopress-drafts-directory (octopress--get-root))
+                            nil
+                            ".*md$\\|.*markdown$"))))
+        (exiled-count . ,(if (file-exists-p exile-path)
+                             (number-to-string
+                              (length
+                               (directory-files
+                                exile-path
+                                nil
+                                ".*md$\\|.*markdown$")))
+                           "0"))
+        (server-status . ,(octopress--server-status-string))))))
 
 (defun octopress--move-to-next-thing ()
   "Move point to the next item with property 'thing."
@@ -855,6 +893,14 @@ STATUS is an alist of status names and their printable values."
          (cdr (assoc 'posts-count status)) "\n"
          (octopress--get-display-list (octopress--get-posts) 'posts)
 
+         (let ((exiled (octopress--get-exiled-posts)))
+           (if exiled
+               (concat (propertize " " 'thing t 'hidden 'exiled 'heading t)
+                       (propertize "      Exiled: " 'face 'font-lock-function-name-face)
+                       (cdr (assoc 'exiled-count status)) "\n"
+                       (octopress--get-display-list exiled 'exiled))
+             ""))
+
          "\n"
          "Press `?' for help.")
         (goto-char (if (< pos (point-max))
@@ -902,6 +948,15 @@ items in this list, allowing them to be shown or hidden as a group."
   "Get a list of drafts files."
   (octopress--setup)
   (octopress--get-articles-in-dir-by-date-desc octopress-drafts-directory))
+
+(defun octopress--get-exiled-posts ()
+  "Get a list of exiled post files."
+  (octopress--setup)
+  (let ((exile-dir (concat
+                    (file-name-as-directory octopress-posts-directory)
+                    (file-name-as-directory "_exile"))))
+    (if (file-exists-p (expand-file-name exile-dir octopress-root))
+        (octopress--get-articles-in-dir-by-date-desc exile-dir))))
 
 (defun octopress--bundler-command-prefix ()
   "Return a `bundle exec' command prefix if required.
