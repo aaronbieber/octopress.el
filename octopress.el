@@ -559,23 +559,44 @@ defined in the configuration."
              (file-exists-p full-filename))
         (pop-to-buffer (find-file full-filename)))))
 
+(defun octopress--quote-post-name (name)
+  "Quote post NAME appropriately for shell command use.
+
+For most post names, `shell-quote-argument' will do, but if there are
+double quotes in the post name, we must instead surround the name with
+double quotes and provide literal backslash-escaped double quotes to
+Octopress, so that the resulting string in the Markdown file contains
+backslash-escaped double quotes.  If we fail to do this, the double
+quotes will be lost entirely, or not appear in the title, or the link
+to the post will be broken.
+
+It is unfortunate that there is, apparently, no way to get the
+Markdown renderer to display double quotes in a post name without
+doing it this way."
+  (if (string-match "\"" name)
+      (concat "\"" (replace-regexp-in-string "\"" "\\\\\\\"" name t t) "\"")
+    (shell-quote-argument name)))
+
 (defun octopress--new-post ()
   "Call the new post command."
   (octopress-toggle-command-window t)
   (let ((name (read-string "Post name: ")))
-    (octopress--run-octopress-command (concat "new post \"" name "\""))))
+    (octopress--run-octopress-command (concat "new post "
+                                              (shell-quote-argument name)))))
 
 (defun octopress--new-draft ()
   "Call the new draft command."
   (octopress-toggle-command-window t)
   (let ((name (read-string "Draft name: ")))
-    (octopress--run-octopress-command (concat "new draft \"" name "\""))))
+    (octopress--run-octopress-command (concat "new draft "
+                                              (octopress--quote-post-name name)))))
 
 (defun octopress--new-page ()
   "Call the new page command."
   (octopress-toggle-command-window t)
   (let ((name (read-string "Page name: ")))
-    (octopress--run-octopress-command (concat "new page \"" name "\""))))
+    (octopress--run-octopress-command (concat "new page "
+                                              (shell-quote-argument name)))))
 
 (defun octopress--buffer-is-configured (buffer)
   "Return t if BUFFER is configured properly for Octopress."
@@ -986,7 +1007,7 @@ Returns the process object."
         (root (octopress--get-root))
         (command (concat
                   (octopress--bundler-command-prefix)
-                  (replace-regexp-in-string "'" "\\\\'" command))))
+                  command)))
     (with-current-buffer pbuffer
       (let ((inhibit-read-only t))
         (goto-char (point-max))
