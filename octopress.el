@@ -331,7 +331,7 @@ Return the symbol 'drafts if the current buffer is a saved draft, and
   "Quit the Octopress status window, preserving its buffer."
   (interactive)
   (octopress-toggle-command-window t)
-  (quit-window))
+  (quit-window t))
 
 (defun octopress-server-quit ()
   "Quit the Octopress Server window, preserving its buffer."
@@ -757,8 +757,6 @@ Otherwise, we assume we are running from a buffer editing a file
 somewhere within the site.  If we are running from some other kind of
 buffer, or a buffer with no file, the user will be prompted to enter
 the path to an Octopress site."
-  (if (not (string= "" octopress-blog-root))
-      octopress-blog-root
     (let ((status-buffer (get-buffer (octopress--buffer-name-for-type "status")))
           (this-dir (if (and (boundp 'dired-directory) dired-directory)
                         dired-directory
@@ -771,11 +769,12 @@ the path to an Octopress site."
         (or (and this-dir
                  (let ((candidate-dir (vc-find-root this-dir "_config.yml")))
                    (if candidate-dir (expand-file-name candidate-dir) nil)))
+            (and (not (string= "" octopress-blog-root)) octopress-blog-root)
             (let ((candidate-dir (read-directory-name "Octopress site root: ")))
               (if (file-exists-p (expand-file-name "_config.yml" candidate-dir))
                   (expand-file-name candidate-dir)
                 (prog2 (message "Could not find _config.yml in `%s'." candidate-dir)
-                    nil))))))))
+                    nil)))))))
 
 (defun octopress--maybe-redraw-status ()
   "If the status buffer exists, redraw it with current information."
