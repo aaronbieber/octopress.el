@@ -387,6 +387,18 @@ result in newer posts appearing first in the list."
                                                   (not (string= f ".."))))))))
     (insert (concat "{% post_url " post " %}"))))
 
+(defun octopress-insert-image-url ()
+  "Read the file name of an image and insert its relative path."
+  (interactive)
+  (let* ((root (octopress--get-root))
+         (fname (read-file-name "Insert path to: " root)))
+    (if fname
+        (let ((fpath (replace-regexp-in-string root "" fname)))
+          (if (not (equal (substring fpath 0 1) "/"))
+              (setq fpath (concat "/" fpath)))
+          (insert fpath))
+      (message "No file selected!"))))
+
 (defun octopress--publish-unpublish (type filename)
   "Publish or unpublish a thing based on TYPE, found at FILENAME."
   (let ((source-path (cond ((eq type 'posts)
