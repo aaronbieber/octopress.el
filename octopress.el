@@ -57,8 +57,10 @@
   "Face used to highlight the active line."
   :group 'octopress)
 
-;; Avoid unbound variable errors.
 (defvar octopress-root)
+(defvar octopress-server-address
+  "http://127.0.0.1:4000"
+  "The base address of the Octopress development server.")
 
 (defvar octopress-highlight-current-line-overlay
   ;; Dummy initialization
@@ -152,16 +154,6 @@ and the location of any currently open buffer will be ignored."
   :type 'string
   :group 'octopress)
 
-(defcustom octopress-server-url
-  "http://localhost:4000/"
-  "URL of the index page of the locally running server.
-
-This is used for launching the site when a server is running, so it
-should include the base path of the site if that is not simply '/'.
-For example, this URL might be 'http://localhost:4000/blog/'."
-  :type 'string
-  :group 'octopress)
-
 (defcustom octopress-file-name-date-pattern
   (rx bol (repeat 4 digit) "-" (repeat 2 digit) "-" (repeat 2 digit))
   "A regular expression matching the date portion of a published filename.
@@ -189,25 +181,13 @@ corresponding browse URL."
   (octopress--maybe-redraw-status))
 
 (defun octopress-browse ()
-  "Open the Octopress site URL in a browser.
-
-If the current buffer is that of an Octopress post or draft, open that
-post or draft's URL.  This function is naive to customized Octopress
-URL patterns, which may be addressed in a future version of this
-package."
+  "Open the current Octopress blog in a browser."
   (interactive)
-  (let* ((buffer-type (octopress--in-blog-buffer-p))
-         (filename (if buffer-type (file-name-base (buffer-file-name))))
-         url)
-    (if buffer-type
-        (setq url (concat octopress-server-url "/"
-                          (if (eq buffer-type 'posts)
-                              (concat (octopress--get-url-date-from-filename filename) "/"
-                                      (octopress--get-filename-no-date filename))
-                            (concat (format-time-string "%Y/%m/%d") "/" filename))
-                          ".html")))
-    (browse-url (if url url
-                  octopress-server-url))))
+  (if (not (octopress--server-status))
+      (message "The Jekyll server is not running.")
+    (if (not octopress-server-address)
+        (message "Could not find the server's address; try restarting the server.")
+      (browse-url octopress-server-address))))
 
 (defun octopress--get-url-date-from-filename (filename)
   "Get a URL-formatted version of the date from the given FILENAME."
@@ -699,9 +679,9 @@ Standard arguments PROCESS and EVENT correspond to those documented in
     (cond ((string-prefix-p "finished" event)
            (progn (message "Jekyll server has finished.")
                   (with-current-buffer (octopress--prepare-server-buffer)
-                    (goto-char (process-mark process))
                     (let ((inhibit-read-only t))
-                      (insert (propertize "\nJekyll server has finished.\n\n" 'face 'font-lock-warning-face))
+                      (erase-buffer)
+                      (insert (propertize "Jekyll server has finished.\n\n" 'face 'font-lock-warning-face))
                       (goto-char (point-max)))))))))
 
 (defun octopress--server-status ()
@@ -1063,6 +1043,12 @@ See `set-process-sentinel' for PROCESS and EVENT details."
            (message "Octopress exited abnormally; check the process output for information.")
            (octopress--handle-octopress-output buffer)))))
 
+(defun octopress--find-server-address ()
+  "Try to find a Jekyll server address in the current buffer."
+  (save-excursion
+    (if (re-search-backward "Server address: \\(.*\\)" nil t)
+        (setq octopress-server-address (match-string 1)))))
+
 (defun octopress--generic-process-filter (proc string)
   "Filter PROC output of STRING and manipulate the buffer."
   (when (buffer-live-p (process-buffer proc))
@@ -1074,7 +1060,8 @@ See `set-process-sentinel' for PROCESS and EVENT details."
           ;; Insert the text, advancing the process marker.
           (goto-char (process-mark proc))
           (insert (replace-regexp-in-string "" "" string))
-          (set-marker (process-mark proc) (point)))
+          (set-marker (process-mark proc) (point))
+          (octopress--find-server-address))
         (when moving
           (goto-char (process-mark proc))
           (if window
