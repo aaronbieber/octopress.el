@@ -107,6 +107,25 @@
     map)
   "Get the keymap for the Octopress process buffer.")
 
+(defvar octopress-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c o i") 'octopress-isolate)
+    (define-key map (kbd "C-c o I") 'octopress-integrate)
+    (define-key map (kbd "C-c o p") 'octopress-insert-post-url)
+    (define-key map (kbd "C-c o m") 'octopress-insert-image-url)
+    (define-key map (kbd "C-c o b") 'octopress-browse)
+    map)
+  "A minor mode for interacting with Octopress.")
+
+(define-minor-mode octopress-minor-mode
+  "A minor mode for interacting with Octopress.
+
+Enable this mode when you are editing blog files and wish to use these
+Octopress-specific convenience functions. For example, you may want to
+enable this mode in `markdown-mode'."
+  nil "Oct"
+  octopress-minor-mode-map)
+
 ;;; Customization
 (defcustom octopress-posts-directory
   "_posts"
