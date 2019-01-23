@@ -58,6 +58,8 @@
   :group 'octopress)
 
 (defvar octopress-root)
+(defvar octopress-last-image-path ""
+  "The fully-qualified path of the last image inserted.")
 (defvar octopress-server-address
   "http://127.0.0.1:4000"
   "The base address of the Octopress development server.")
@@ -371,11 +373,13 @@ result in newer posts appearing first in the list."
   "Read the file name of an image and insert its relative path."
   (interactive)
   (let* ((root (octopress--get-root))
-         (fname (read-file-name "Insert path to: " root)))
+         (browse-root (concat (file-name-directory root)
+                              octopress-last-image-path))
+         (fname (read-file-name "Insert path to: " browse-root)))
     (if fname
-        (let ((fpath (replace-regexp-in-string root "" fname)))
-          (if (not (equal (substring fpath 0 1) "/"))
-              (setq fpath (concat "/" fpath)))
+        (let ((fpath (file-relative-name fname root)))
+          (setq octopress-last-image-path
+                (file-name-directory fpath))
           (insert fpath))
       (message "No file selected!"))))
 
